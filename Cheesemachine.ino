@@ -16,8 +16,9 @@
 #define TEMP_PROBE_VCC 4 // DS18B20 VCC PIN
 
 double setpoint = 32; // Gewünschte Zieltemperatur
-double temperature; // Variable für die Temperatur
+double temperature, minTemp, maxTemp; // Variable für die Temperatur, Minimal- und Maximaltemperatur
 int relayMode = 0; //Aus = 0, Halb = 1, Ganz = 2
+
 
 // Initialisiere die Bibliotheken
 OneWire oneWire(TEMP_PROBE_PIN);
@@ -87,6 +88,14 @@ void relayCycle() {
   }
 }
 
+void minMax() {
+  if ((temperature < minTemp) && temperature != -127) {
+    minTemp = temperature;
+  } else if (temperature > maxTemp) {
+    maxTemp = temperature;
+  }
+}
+
 void lcdAusgabe() {
   lcd.setCursor(0, 0);
   lcd.print("Aktuelle Temperatur:");
@@ -101,8 +110,14 @@ void lcdAusgabe() {
   } else if (temperature == -127) {
     lcd.setCursor(0, 1);
     lcd.print("ERR    ");
-
   }
+  lcd.setCursor(0, 2);
+  lcd.print("Min/Max-Temperatur");
+  lcd.setCursor(0, 3);
+  lcd.print(minTemp);
+  lcd.print("/");
+  lcd.print(maxTemp);
+  lcd.print("     "); //Lösche mögliche alte Zeichen in der Zeile
 
 }
 
@@ -110,5 +125,6 @@ void loop() {
   updateTemperature();
   heizbestimmung();
   relayCycle();
+  minMax();
   lcdAusgabe();
 }
